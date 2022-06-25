@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="528.0" prefWidth="951.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.c195.windowcontrollers.ManageCustomersWindowController">
+   <children>
+      <TableView fx:id="tableViewCustomerList" layoutX="50.0" layoutY="55.0" prefHeight="381.0" prefWidth="865.0">
+        <columns>
+            <TableColumn fx:id="tableCustomerCustIDColumn" prefWidth="75.0" text="ID" />
+          <TableColumn fx:id="tableCustomerCustNameColumn" prefWidth="154.0" text="%name" />
+            <TableColumn fx:id="tableCustomerCustAddressColumn" prefWidth="236.0" text="%address" />
+            <TableColumn fx:id="tableCustomerCustPostalCodeColumn" prefWidth="99.0" text="%postalCode" />
+            <TableColumn fx:id="tableCustomerCustPhoneColumn" prefWidth="145.0" text="%phoneNumber" />
+            <TableColumn fx:id="tableCustomerCustDivisionColumn" prefWidth="152.0" text="%division" />
+        </columns>
+      </TableView>
+      <Button fx:id="buttonAdd" layoutX="50.0" layoutY="453.0" mnemonicParsing="false" onAction="#onButtonAddClick" prefHeight="25.0" prefWidth="59.0" text="%add" />
+      <Button fx:id="buttonEdit" disable="true" layoutX="124.0" layoutY="453.0" mnemonicParsing="false" onAction="#onButtonEditClick" prefHeight="25.0" prefWidth="51.0" text="%edit" />
+      <Button fx:id="buttonDelete" disable="true" layoutX="193.0" layoutY="453.0" mnemonicParsing="false" onAction="#onButtonDeleteClick" text="%delete" />
+      <Button fx:id="buttonClose" layoutX="843.0" layoutY="453.0" mnemonicParsing="false" onAction="#onButtonCloseClick" prefHeight="25.0" prefWidth="65.0" text="%close" />
+      <Label layoutX="52.0" layoutY="22.0" text="%customerManagement">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+   </children>
+</AnchorPane>

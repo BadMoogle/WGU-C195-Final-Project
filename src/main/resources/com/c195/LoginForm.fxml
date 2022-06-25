@@ -6,15 +6,15 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="272.0" prefWidth="361.0" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.c195.LoginFormController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="272.0" prefWidth="361.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.c195.windowcontrollers.LoginFormController">
    <children>
       <Label fx:id="label_timezone" alignment="CENTER_RIGHT" layoutX="165.0" layoutY="24.0" prefHeight="17.0" prefWidth="154.0" textAlignment="RIGHT" />
-      <Label fx:id="label_user_name" layoutX="26.0" layoutY="41.0" text="User Name" />
-      <TextField fx:id="text_box_login" layoutX="26.0" layoutY="66.0" prefHeight="25.0" prefWidth="294.0" promptText="Enter your username" />
-      <Label fx:id="label_password" layoutX="26.0" layoutY="104.0" text="Password" />
-      <PasswordField fx:id="text_box_password" layoutX="26.0" layoutY="137.0" prefHeight="25.0" prefWidth="294.0" promptText="Enter your password" />
-      <Button fx:id="button_login" layoutX="114.0" layoutY="223.0" mnemonicParsing="false" onAction="#onButtonLoginClick" prefHeight="25.0" prefWidth="82.0" text="Login" />
-      <Button fx:id="button_exit" layoutX="230.0" layoutY="223.0" mnemonicParsing="false" onAction="#onButtonExitClick" prefHeight="25.0" prefWidth="90.0" text="Exit" />
+      <Label fx:id="label_user_name" layoutX="26.0" layoutY="41.0" prefHeight="17.0" prefWidth="68.0" text="%loginLabel" />
+      <TextField fx:id="text_box_login" layoutX="26.0" layoutY="66.0" prefHeight="25.0" prefWidth="294.0" promptText="%loginPromptText" />
+      <Label fx:id="label_password" layoutX="26.0" layoutY="104.0" text="%password" />
+      <PasswordField fx:id="text_box_password" layoutX="26.0" layoutY="137.0" prefHeight="25.0" prefWidth="294.0" promptText="%passwordPromptText" />
+      <Button fx:id="button_login" layoutX="114.0" layoutY="223.0" mnemonicParsing="false" onAction="#onButtonLoginClick" prefHeight="25.0" prefWidth="82.0" text="%login" />
+      <Button fx:id="button_exit" layoutX="230.0" layoutY="223.0" mnemonicParsing="false" onAction="#onButtonExitClick" prefHeight="25.0" prefWidth="90.0" text="%exit" />
       <Label fx:id="label_status" layoutX="26.0" layoutY="184.0" prefHeight="17.0" prefWidth="294.0" />
    </children>
 </AnchorPane>

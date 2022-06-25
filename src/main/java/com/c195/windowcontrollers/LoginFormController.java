@@ -2,23 +2,21 @@
  * Sample Skeleton for 'LoginForm.fxml' Controller Class
  */
 
-package com.c195;
+package com.c195.windowcontrollers;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.TimeZone;
 
+import com.c195.App;
+import com.c195.datamodels.DatabaseController;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 
 public class LoginFormController {
@@ -58,38 +56,42 @@ public class LoginFormController {
         Platform.exit();
     }
 
-
-
+    /**
+     *
+     * @param event
+     */
     @FXML
     void onButtonLoginClick(ActionEvent event) throws IOException {
-        Stage stage = new Stage();
-        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("MainWindow.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 809, 527);
-        stage.setResizable(false);
-        stage.setScene(scene);
-        stage.show();
-        Stage currentStage = (Stage) button_exit.getScene().getWindow();
-        currentStage.close();
+        String username = text_box_login.getText();
+        String password = text_box_password.getText();
+        ResourceBundle localizationBundle = ResourceBundle.getBundle("com.c195.localization", App.currentLocale);
+        // Verify login
+        if (DatabaseController.validateLogin(username, password)) {
+            Stage stage = new Stage();
+            FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("MainWindow.fxml"));
+            fxmlLoader.setResources(localizationBundle);
+            Scene scene = new Scene(fxmlLoader.load(), 1006, 443);
+            stage.setResizable(false);
+            stage.setScene(scene);
+            stage.setTitle(localizationBundle.getString("customerAppointments"));
+            stage.show();
+            Stage currentStage = (Stage) button_exit.getScene().getWindow();
+            currentStage.close();
+        }
+        else {
+            Alert alert = new Alert(Alert.AlertType.ERROR, localizationBundle.getString("incorrectPasswordError"));
+            alert.showAndWait();
+        }
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
         label_timezone.setText(TimeZone.getDefault().getDisplayName());
-        Locale currentLocale = Locale.getDefault();
-        currentLocale = new Locale("fr"); // For testing different locales
-        ResourceBundle localizationBundle = ResourceBundle.getBundle("com.c195.localization", currentLocale);
-        label_user_name.setText(localizationBundle.getString("loginLabel"));
-        text_box_login.setPromptText(localizationBundle.getString("loginPromptText"));
-        label_password.setText(localizationBundle.getString("passwordLabel"));
-        text_box_password.setPromptText(localizationBundle.getString("passwordPromptText"));
-        button_login.setText(localizationBundle.getString("login"));
-        button_exit.setText(localizationBundle.getString("exit"));
         assert button_exit != null : "fx:id=\"button_exit\" was not injected: check your FXML file 'LoginForm.fxml'.";
         assert button_login != null : "fx:id=\"button_login\" was not injected: check your FXML file 'LoginForm.fxml'.";
         assert label_status != null : "fx:id=\"label_status\" was not injected: check your FXML file 'LoginForm.fxml'.";
         assert text_box_password != null : "fx:id=\"text_box_password\" was not injected: check your FXML file 'LoginForm.fxml'.";
         assert text_box_login != null : "fx:id=\"text_field_login\" was not injected: check your FXML file 'LoginForm.fxml'.";
-
     }
 
 }
