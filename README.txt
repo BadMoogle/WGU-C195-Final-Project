@@ -1,11 +1,11 @@
-•  title and purpose of the application
+•  C195 - Task 1
 
-•  author, contact information, student application version, and date
+•  Daniel Harper, dharp41@my.wgu.edu, 6/26/2022
 
 • IntelliJ IDEA 2022.1.2, Java SE 17.0..1, JavaFX 17.0.1
 
-•  directions for how to run the program
+•  The app entry point is in App.java
 
-•  a description of the additional report of your choice you ran in part A3f
+•  Additional Report: A list of appointments filtered by customer
 
-•  the MySQL Connector driver version number, including the update number (e.g., mysql-connector-java-8.1.23)
+•  mysql-connector-java-8.0.29
