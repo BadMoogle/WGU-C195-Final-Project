@@ -30,13 +30,14 @@
             </Menu>
           <Menu mnemonicParsing="false" text="%reports">
             <items>
-              <MenuItem mnemonicParsing="false" text="About" />
+              <MenuItem mnemonicParsing="false" onAction="#onMenuReportsReportClick" text="%reports" />
             </items>
           </Menu>
         </menus>
       </MenuBar>
       <TableView fx:id="tableViewAppointments" layoutX="71.0" layoutY="110.0" prefHeight="255.0" prefWidth="864.0">
         <columns>
+            <TableColumn fx:id="tableColumnID" prefWidth="75.0" text="ID" />
           <TableColumn fx:id="tableColumnTitle" prefWidth="75.0" text="%title" />
             <TableColumn fx:id="tableColumnDescription" prefWidth="105.0" text="%description" />
             <TableColumn fx:id="tableColumnLocation" prefWidth="68.0" text="%location" />

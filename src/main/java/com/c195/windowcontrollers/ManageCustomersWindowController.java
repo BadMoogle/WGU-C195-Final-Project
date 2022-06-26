@@ -21,9 +21,12 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+/**
+ * Manage Customer Window Controller
+ */
 public class ManageCustomersWindowController {
 
-    public ObservableList<Customer> customers;
+    public ObservableList<Customer> customers; // List of customers for the table view
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -65,6 +68,12 @@ public class ManageCustomersWindowController {
     private TableView<Customer> tableViewCustomerList; // Value injected by FXMLLoader
 
 
+    /**
+     * Event handler for the add button to open the form for a new customer.
+     *
+     * @param event Ignored
+     * @throws IOException Thrown if the fxml cannot be loaded.
+     */
     @FXML
     void onButtonAddClick(ActionEvent event) throws IOException {
         Stage stage = new Stage();
@@ -83,12 +92,22 @@ public class ManageCustomersWindowController {
         tableViewCustomerList.setItems(customers);
     }
 
+    /**
+     * Closes the current form.
+     *
+     * @param event Ignored
+     */
     @FXML
     void onButtonCloseClick(ActionEvent event) {
         Stage currentStage = (Stage) buttonAdd.getScene().getWindow();
         currentStage.close();
     }
 
+    /**
+     * Deletes the currently selected customer in the tableview.
+     *
+     * @param event Ignored
+     */
     @FXML
     void onButtonDeleteClick(ActionEvent event) {
         Customer customer = tableViewCustomerList.getSelectionModel().getSelectedItem();
@@ -113,6 +132,12 @@ public class ManageCustomersWindowController {
 
     }
 
+    /**
+     * Opens up the form to edit the currently selected customer in the tableview.
+     *
+     * @param event Event.  Not used.
+     * @throws IOException IOException if the fxml cannot be loaded.
+     */
     @FXML
     void onButtonEditClick(ActionEvent event) throws IOException {
         AddEditCustomerWindowController.customer = tableViewCustomerList.getSelectionModel().getSelectedItem();
@@ -145,7 +170,7 @@ public class ManageCustomersWindowController {
         tableCustomerCustAddressColumn.setCellValueFactory(new PropertyValueFactory<>("address"));
         tableCustomerCustPostalCodeColumn.setCellValueFactory(new PropertyValueFactory<>("postalCode"));
         tableCustomerCustPhoneColumn.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
-        tableCustomerCustDivisionColumn.setCellValueFactory(new PropertyValueFactory<>("divisionName"));
+        tableCustomerCustDivisionColumn.setCellValueFactory(new PropertyValueFactory<>("division"));
         tableViewCustomerList.setItems(customers);
         // Lambda to create the callback function required to get a row level event listener
         tableViewCustomerList.setRowFactory(rowFactory -> {
@@ -162,11 +187,6 @@ public class ManageCustomersWindowController {
 
             return row;
         });
-        assert buttonAdd != null : "fx:id=\"buttonAdd\" was not injected: check your FXML file 'ManageCustomersWindow.fxml'.";
-        assert buttonClose != null : "fx:id=\"buttonClose\" was not injected: check your FXML file 'ManageCustomersWindow.fxml'.";
-        assert buttonDelete != null : "fx:id=\"buttonDelete\" was not injected: check your FXML file 'ManageCustomersWindow.fxml'.";
-        assert buttonEdit != null : "fx:id=\"buttonEdit\" was not injected: check your FXML file 'ManageCustomersWindow.fxml'.";
-        assert tableViewCustomerList != null : "fx:id=\"tableViewCustomerList\" was not injected: check your FXML file 'ManageCustomersWindow.fxml'.";
 
     }
 

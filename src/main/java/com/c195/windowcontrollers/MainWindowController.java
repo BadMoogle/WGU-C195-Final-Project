@@ -5,17 +5,23 @@
 package com.c195.windowcontrollers;
 
 import java.io.IOException;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
+import java.util.TreeSet;
 
 import com.c195.App;
 import com.c195.datamodels.Appointment;
 import com.c195.datamodels.Contact;
 import com.c195.datamodels.Customer;
 import com.c195.datamodels.DatabaseController;
+import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -25,10 +31,14 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+/**
+ * Main window controller.
+ */
 public class MainWindowController {
 
     private static ObservableList<Appointment> appointmentList;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd hh:mm a");
+    private ObservableSet<LocalDate> selectedDates;
 
 
     @FXML // fx:id="datePickerAppointment"
@@ -49,6 +59,9 @@ public class MainWindowController {
 
     @FXML // fx:id="buttonEdit"
     private Button buttonEdit; // Value injected by FXMLLoader
+
+    @FXML // fx:id="tableColumnID"
+    private TableColumn<Appointment, Integer> tableColumnID; // Value injected by FXMLLoader
 
     @FXML
     private TableColumn<Appointment, Contact> tableColumnContact;
@@ -78,18 +91,65 @@ public class MainWindowController {
     private TableView<Appointment> tableViewAppointments;
 
 
+    /**
+     * Event handler for when the date picker is changed.
+     *
+     * @param event Ignored
+     */
     @FXML
     void onDatePickerAction(ActionEvent event) {
+        selectedDates.clear();
+        LocalDate date = datePickerAppointment.getValue();
+        selectedDates.add(date);
+        if (radioButtonByWeek.isSelected()) {
+            DayOfWeek day = date.getDayOfWeek();
 
+            for (int i = 1; i <= day.getValue(); i++) {
+                selectedDates.add(date.minusDays(i));
+            }
+            for (int i = 1; day.getValue() + i <= 6; i++) {
+                selectedDates.add(date.plusDays(i));
+            }
+            appointmentList.clear();
+            LocalDate minDate = datePickerAppointment.getValue();
+            for(LocalDate i: selectedDates) {
+                if(i.isBefore(minDate)){
+                    minDate = i;
+                }
+            }
+            LocalDate maxDate = datePickerAppointment.getValue();
+            for(LocalDate i: selectedDates) {
+                if(i.isAfter(maxDate)){
+                    maxDate = i;
+                }
+            }
+            appointmentList = DatabaseController.getAppointmentsBetweenTwoDates(minDate, maxDate);
+            tableViewAppointments.setItems(appointmentList);
+        }
+        else {
+            for (int i = 1; i <= date.getMonth().maxLength(); i++) {
+                selectedDates.add(LocalDate.of(date.getYear(), date.getMonth(), i));
+            }
+            appointmentList.clear();
+            appointmentList = DatabaseController.getAppointmentsByMonth(datePickerAppointment.getValue().getYear(), datePickerAppointment.getValue().getMonth());
+            tableViewAppointments.setItems(appointmentList);
+        }
     }
 
+    /**
+     * Event handler for the add button.  Adds a new appointment.
+     *
+     * @param event Ignored
+     * @throws IOException Thrown if the fxml is invalid
+     */
     @FXML
     void onButtonAddClick(ActionEvent event) throws IOException {
+        AddEditAppointmentWindowController.appointment = null;
         Stage stage = new Stage();
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("AddEditAppointmentWindow.fxml"));
         ResourceBundle localizationBundle = ResourceBundle.getBundle("com.c195.localization", App.currentLocale);
         fxmlLoader.setResources(localizationBundle);
-        Scene scene = new Scene(fxmlLoader.load(), 401, 297);
+        Scene scene = new Scene(fxmlLoader.load(), 403, 533);
         stage.setResizable(false);
         stage.initModality(Modality.WINDOW_MODAL);
         Stage currentStage = (Stage) tableViewAppointments.getScene().getWindow();
@@ -97,10 +157,18 @@ public class MainWindowController {
         stage.setTitle(localizationBundle.getString("addAppointment"));
         stage.setScene(scene);
         stage.showAndWait();
+        // Update the table view if changes.
         appointmentList = DatabaseController.getAllAppointments();
         tableViewAppointments.setItems(appointmentList);
+        buttonDelete.setDisable(true);
+        buttonEdit.setDisable(true);
     }
 
+    /**
+     * Deletes the selected appointment in the table view.
+     *
+     * @param event Ignored
+     */
     @FXML
     void onButtonDeleteClick(ActionEvent event) {
         Appointment appointment = tableViewAppointments.getSelectionModel().getSelectedItem();
@@ -124,6 +192,12 @@ public class MainWindowController {
         });
     }
 
+    /**
+     * Event handler for the edit button for appointment.
+     *
+     * @param event Ignored
+     * @throws IOException Thrown if the fxml is invalid
+     */
     @FXML
     void onButtonEditClick(ActionEvent event) throws IOException {
         AddEditAppointmentWindowController.appointment = tableViewAppointments.getSelectionModel().getSelectedItem();
@@ -131,7 +205,7 @@ public class MainWindowController {
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("AddEditAppointmentWindow.fxml"));
         ResourceBundle localizationBundle = ResourceBundle.getBundle("com.c195.localization", App.currentLocale);
         fxmlLoader.setResources(localizationBundle);
-        Scene scene = new Scene(fxmlLoader.load(), 401, 297);
+        Scene scene = new Scene(fxmlLoader.load(), 403, 533);
         stage.setResizable(false);
         stage.initModality(Modality.WINDOW_MODAL);
         Stage currentStage = (Stage) tableViewAppointments.getScene().getWindow();
@@ -139,10 +213,19 @@ public class MainWindowController {
         stage.setTitle(localizationBundle.getString("edit") + " " + AddEditAppointmentWindowController.appointment.getTitle());
         stage.setScene(scene);
         stage.showAndWait();
+        // Update the table view if changes.
         appointmentList = DatabaseController.getAllAppointments();
         tableViewAppointments.setItems(appointmentList);
+        buttonDelete.setDisable(true);
+        buttonEdit.setDisable(true);
     }
 
+    /**
+     * Event handler the menu item File->Manage Customers.
+     *
+     * @param event Ignored
+     * @throws IOException Thrown if the fxml is not found
+     */
     @FXML
     void onFileManageCustomersClick(ActionEvent event) throws IOException {
         Stage stage = new Stage();
@@ -157,15 +240,29 @@ public class MainWindowController {
         stage.setTitle(localizationBundle.getString("manageCustomers"));
         stage.setScene(scene);
         stage.showAndWait();
+        // Update the table view if changes.
         appointmentList = DatabaseController.getAllAppointments();
         tableViewAppointments.setItems(appointmentList);
+        buttonDelete.setDisable(true);
+        buttonEdit.setDisable(true);
     }
 
+    /**
+     * Event hander for the menu item File->Exit.  Exits the application.
+     *
+     * @param event Ignored
+     */
     @FXML
     void onFileExitClick(ActionEvent event) {
         Platform.exit();
     }
 
+    /**
+     * Event handler for the menu item Customer->New Customer
+     *
+     * @param event Ignored
+     * @throws IOException Thrown if the fxml is invalid
+     */
     @FXML
     void onCustomerNewCustomerClick(ActionEvent event) throws IOException {
         AddEditCustomerWindowController.customer = null;
@@ -181,12 +278,45 @@ public class MainWindowController {
         stage.setTitle(localizationBundle.getString("newCustomer"));
         stage.setScene(scene);
         stage.showAndWait();
+        // Update the table view if changes.
         appointmentList = DatabaseController.getAllAppointments();
         tableViewAppointments.setItems(appointmentList);
+        buttonDelete.setDisable(true);
+        buttonEdit.setDisable(true);
     }
 
+    /**
+     * Event handler for the menu->Reports->Reports menu item.
+     *
+     * @param event Ignored
+     * @throws IOException Thrown if the fxml cannot be loaded
+     */
+    @FXML
+    void onMenuReportsReportClick(ActionEvent event) throws IOException {
+        Stage stage = new Stage();
+        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("ReportsWindow.fxml"));
+        ResourceBundle localizationBundle = ResourceBundle.getBundle("com.c195.localization", App.currentLocale);
+        fxmlLoader.setResources(localizationBundle);
+        Scene scene = new Scene(fxmlLoader.load(), 1134, 685);
+        stage.setResizable(false);
+        stage.initModality(Modality.WINDOW_MODAL);
+        Stage currentStage = (Stage) tableViewAppointments.getScene().getWindow();
+        stage.initOwner(currentStage );
+        stage.setTitle(localizationBundle.getString("newCustomer"));
+        stage.setScene(scene);
+        stage.showAndWait();
+    }
+
+    /**
+     * Initialize data values on the form after it's loaded.
+     * Lambdas to format the cells.
+     *
+     */
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
+        // Sets up the table.
+        this.selectedDates = FXCollections.observableSet(new TreeSet<>());
+        tableColumnID.setCellValueFactory(new PropertyValueFactory<>("appointmentID"));
         tableColumnContact.setCellValueFactory(new PropertyValueFactory<>("contact"));
         tableColumnCustomer.setCellValueFactory(new PropertyValueFactory<>("customer"));
         tableColumnTitle.setCellValueFactory(new PropertyValueFactory<>("title"));
@@ -230,9 +360,44 @@ public class MainWindowController {
                     buttonDelete.setDisable(false);
                     buttonEdit.setDisable(false);
                 }
+                else {
+                    buttonDelete.setDisable(true);
+                    buttonEdit.setDisable(true);
+                }
             });
             return row;
         });
+        datePickerAppointment.setDayCellFactory(callback -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item.getDayOfWeek() == DayOfWeek.SATURDAY || item.getDayOfWeek() == DayOfWeek.SUNDAY)
+                {
+                    setDisable(true);
+                }
+                if (selectedDates.contains(item)) {
+                    setStyle("-fx-background-color: rgba(3, 169, 244, 0.7);");
+                }
+                else {
+                    setStyle(null);
+                }
+        }
+        });
+        // Trigger alerts if there's an appointment within 15 minutes.
+        boolean alertTriggered = false;
+        for (Appointment appointment: DatabaseController.getAppointmentsNearNow()){
+            ResourceBundle localizationBundle = ResourceBundle.getBundle("com.c195.localization", App.currentLocale);
+            Alert alert = new Alert(Alert.AlertType.INFORMATION,
+                    localizationBundle.getString("appointmentInFifteenMinutes")+ ": " + appointment.getTitle());
+            alert.showAndWait();
+            alertTriggered=true;
+        }
+        if (!alertTriggered) {
+            ResourceBundle localizationBundle = ResourceBundle.getBundle("com.c195.localization", App.currentLocale);
+            Alert alert = new Alert(Alert.AlertType.INFORMATION,
+                    localizationBundle.getString("noAppointmentsInFifteenMinutes"));
+            alert.showAndWait();
+        }
     }
 
 }

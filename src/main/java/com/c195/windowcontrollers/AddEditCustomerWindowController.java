@@ -13,13 +13,15 @@ import com.c195.datamodels.*;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.TableRow;
 import javafx.scene.control.TextField;
-import javafx.scene.control.cell.ComboBoxListCell;
 import javafx.stage.Stage;
 
+/**
+ * Class controller for the Add/Edit customer window
+ */
 public class AddEditCustomerWindowController {
 
     public static Customer customer;
@@ -58,6 +60,11 @@ public class AddEditCustomerWindowController {
     @FXML // fx:id="textBoxPostalCode"
     private TextField textBoxPostalCode; // Value injected by FXMLLoader
 
+    /**
+     * Event handler for when the cancel button is clicked
+     *
+     * @param event Ignored
+     */
     @FXML
     void onButtonCancelClicked(ActionEvent event) {
         Stage currentStage = (Stage) buttonCancel.getScene().getWindow();
@@ -65,11 +72,21 @@ public class AddEditCustomerWindowController {
         currentStage.close();
     }
 
+    /**
+     * Event handler for the save button
+     *
+     * @param event ignored
+     */
     @FXML
     void onButtonSaveClicked(ActionEvent event) {
-
+        if (textBoxName.getText() == "" || textBoxAddress.getText() == "" || textBoxPostalCode.getText() == ""
+                || textBoxPhoneNumber.getText() == ""
+                || comboBoxDivision.getSelectionModel().getSelectedItem() == null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR, resources.getString("fillOutAllFields"));
+            alert.showAndWait();
+            return;
+        }
         if (customer == null) {
-            System.out.println("Testing");
             DatabaseController.addCustomer(new Customer(-1, textBoxName.getText(), textBoxAddress.getText(),
                     textBoxPostalCode.getText(), textBoxPhoneNumber.getText(), new Date(System.currentTimeMillis()),
                     App.getCurrentUserName(), new Date(System.currentTimeMillis()), App.getCurrentUserName(),
@@ -88,6 +105,11 @@ public class AddEditCustomerWindowController {
         currentStage.close();
     }
 
+    /**
+     * Event handler for when the combobox Country is changed.
+     *
+     * @param event Ignored
+     */
     @FXML
     void onComboBoxCountryAction(ActionEvent event) {
         Country country = comboBoxCountry.getSelectionModel().getSelectedItem();
@@ -97,6 +119,9 @@ public class AddEditCustomerWindowController {
         }
     }
 
+    /**
+     * Sets the data in the controls after the form is initialized
+     */
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
         comboBoxCountry.setItems(DatabaseController.getAllCountries());

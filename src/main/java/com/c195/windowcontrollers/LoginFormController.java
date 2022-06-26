@@ -19,6 +19,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 
+/**
+ * Login from controller
+ */
 public class LoginFormController {
 
     @FXML // ResourceBundle that was given to the FXMLLoader
@@ -51,14 +54,20 @@ public class LoginFormController {
     @FXML // fx:id="text_box_password"
     private PasswordField text_box_password; // Value injected by FXMLLoader
 
+    /**
+     * Event handler for the exist button.
+     *
+     * @param event Ignored
+     */
     @FXML
     void onButtonExitClick(ActionEvent event) {
         Platform.exit();
     }
 
     /**
+     * Event handler for the login button
      *
-     * @param event
+     * @param event Ignored
      */
     @FXML
     void onButtonLoginClick(ActionEvent event) throws IOException {
@@ -84,14 +93,12 @@ public class LoginFormController {
         }
     }
 
+    /**
+     * Called after the form is initialized
+     */
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
         label_timezone.setText(TimeZone.getDefault().getDisplayName());
-        assert button_exit != null : "fx:id=\"button_exit\" was not injected: check your FXML file 'LoginForm.fxml'.";
-        assert button_login != null : "fx:id=\"button_login\" was not injected: check your FXML file 'LoginForm.fxml'.";
-        assert label_status != null : "fx:id=\"label_status\" was not injected: check your FXML file 'LoginForm.fxml'.";
-        assert text_box_password != null : "fx:id=\"text_box_password\" was not injected: check your FXML file 'LoginForm.fxml'.";
-        assert text_box_login != null : "fx:id=\"text_field_login\" was not injected: check your FXML file 'LoginForm.fxml'.";
     }
 
 }

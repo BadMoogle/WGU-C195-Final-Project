@@ -5,18 +5,27 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.sql.*;
-import java.time.Instant;
+import java.time.*;
 import java.util.Calendar;
 import java.util.TimeZone;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+/**
+ * Database controller.  Used for any calls to the database.
+ */
 public class DatabaseController {
-    private static final String dbConnectionString = "jdbc:mysql://192.168.1.2:3306/client_schedule";
+    //DB Connection information.
+    private static final String dbConnectionString = "jdbc:mysql://192.168.1.2:3306/client_schedule?serverTimezone=UTC";
     private static final String dbConnectionUser = "sqlUser";
     private static final String dbConnectionPassword = "Passw0rd!";
 
+    /**
+     * Adds a new appointment to the database.
+     *
+     * @param appointment Appointment to add
+     */
     public static void addAppointment(Appointment appointment) {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -46,6 +55,11 @@ public class DatabaseController {
         }
     }
 
+    /**
+     * Adds a new contact to the database.
+     *
+     * @param contact Contact to add to the database
+     */
     public static void addContact(Contact contact) {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -63,6 +77,11 @@ public class DatabaseController {
         }
     }
 
+    /**
+     * Adds a new customer to the database.
+     *
+     * @param customer Customer to add to the database
+     */
     public static void addCustomer(Customer customer) {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -88,6 +107,11 @@ public class DatabaseController {
         }
     }
 
+    /**
+     * Adds a new division to the database
+     *
+     * @param division Division to add to the database
+     */
     public static void addDivision(Division division) {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -109,6 +133,38 @@ public class DatabaseController {
         }
     }
 
+    /**
+     * Checks if there is a conflict in an appointment with one in the database.
+     *
+     * @param appointment Appointment to check against existing in the database
+     * @param customer Customer to check
+     * @return True if there is a conflict, false if not
+     */
+    public static boolean checkAppointmentConflict(Appointment appointment, Customer customer) {
+        ObservableList<Appointment> appointmentList = getAppointmentByCustomerId(customer.getCustomerId());
+        boolean hasConflict = false;
+        for (Appointment forAppointment : appointmentList) {
+            if (forAppointment.getAppointmentID() != appointment.getAppointmentID()) {
+                // Put into local variables for my sanity
+                LocalDateTime forAppStartDate = forAppointment.getStartDateTime().getValue();
+                LocalDateTime custAppStartDate = appointment.getStartDateTime().getValue();
+                LocalDateTime forAppEndDate = forAppointment.getEndDateTime().getValue();
+                LocalDateTime custAppEndDate = appointment.getEndDateTime().getValue();
+                if (forAppStartDate.isBefore(custAppStartDate) && forAppEndDate.isAfter(custAppStartDate)) {
+                    hasConflict = true;
+                } else if (forAppEndDate.isAfter(custAppStartDate) && forAppEndDate.isBefore(custAppEndDate)) {
+                    hasConflict = true;
+                }
+            }
+        }
+        return hasConflict;
+    }
+
+    /**
+     * Deletes an appointment from the database
+     *
+     * @param appointment Appointment to delete from the database
+     */
     public static void deleteAppointment(Appointment appointment) {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -125,6 +181,11 @@ public class DatabaseController {
         }
     }
 
+    /**
+     * Deletes a contact from the database
+     *
+     * @param contact Contact to delete from the database
+     */
     public static void deleteContact(Contact contact)  {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -141,6 +202,11 @@ public class DatabaseController {
         }
     }
 
+    /**
+     * Deletes a customer and all appointments associated that customer from the database.
+     *
+     * @param customer Customer to delete from the database
+     */
     public static void deleteCustomer(Customer customer) {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -161,16 +227,23 @@ public class DatabaseController {
         }
     }
 
-    public static Appointment getAppointmentById(int customerId) {
+    /**
+     * Gets all the appointments for the contact
+     *
+     * @param contactId ContactId to get appointments for.
+     * @return An ObservableList of appointments
+     */
+    public static ObservableList<Appointment> getAppointmentByContactId(int contactId) {
+        ObservableList<Appointment> appointmentList = FXCollections.observableArrayList();
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             Connection connection = DriverManager.getConnection(
                     dbConnectionString,dbConnectionUser,dbConnectionPassword);
-            PreparedStatement ps = connection.prepareStatement("select * from appointments where Appointment_ID=?;"); // Using a PreparedStatement to avoid injection
-            ps.setInt(1, customerId);
+            PreparedStatement ps = connection.prepareStatement("select * from appointments where Contact_ID=?;"); // Using a PreparedStatement to avoid injection
+            ps.setInt(1, contactId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                return new Appointment(
+                appointmentList.add(new Appointment(
                         rs.getInt("Appointment_ID"),
                         rs.getString("Title"),
                         rs.getString("Description"),
@@ -184,16 +257,61 @@ public class DatabaseController {
                         rs.getString("Last_Updated_By"),
                         rs.getInt("Customer_ID"),
                         rs.getInt("User_ID"),
-                        rs.getInt("Contact_ID"));
+                        rs.getInt("Contact_ID")));
             }
             connection.close();
         }
         catch (Exception e) {
             System.out.println(e);
         }
-        return null;
+        return appointmentList;
     }
 
+    /**
+     * Gets all the appointments associated with the specified customerID
+     *
+     * @param customerId CustomerID to get the appointment's of
+     * @return an ObservableList of appointments associated with the specified customerID
+     */
+    public static ObservableList<Appointment> getAppointmentByCustomerId(int customerId) {
+        ObservableList<Appointment> appointmentList = FXCollections.observableArrayList();
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection connection = DriverManager.getConnection(
+                    dbConnectionString,dbConnectionUser,dbConnectionPassword);
+            PreparedStatement ps = connection.prepareStatement("select * from appointments where Customer_ID=?;"); // Using a PreparedStatement to avoid injection
+            ps.setInt(1, customerId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                appointmentList.add(new Appointment(
+                        rs.getInt("Appointment_ID"),
+                        rs.getString("Title"),
+                        rs.getString("Description"),
+                        rs.getString("Location"),
+                        rs.getString("Type"),
+                        rs.getTimestamp("Start", Calendar.getInstance(TimeZone.getTimeZone("UTC"))).toInstant(),
+                        rs.getTimestamp("End", Calendar.getInstance(TimeZone.getTimeZone("UTC"))).toInstant(),
+                        rs.getTimestamp("Create_Date", Calendar.getInstance(TimeZone.getTimeZone("UTC"))).toInstant(),
+                        rs.getString("Created_By"),
+                        rs.getTimestamp("Last_Update", Calendar.getInstance(TimeZone.getTimeZone("UTC"))).toInstant(),
+                        rs.getString("Last_Updated_By"),
+                        rs.getInt("Customer_ID"),
+                        rs.getInt("User_ID"),
+                        rs.getInt("Contact_ID")));
+            }
+            connection.close();
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+        return appointmentList;
+    }
+
+    /**
+     * Gets all the appointments in the database
+     *
+     * @return An ObservableList Appointment  of all appointments in the database
+     */
     public static ObservableList<Appointment> getAllAppointments() {
         ObservableList<Appointment> appointmentList = FXCollections.observableArrayList();
         try {
@@ -227,13 +345,22 @@ public class DatabaseController {
         return appointmentList;
     }
 
-    public static ObservableList<Appointment> getAppointmentsByLastSevenDays() {
+    /**
+     * Returns all the appointments starting in the last 15 minutes.
+     *
+     * @return An ObservableList Appointment  of all appointments in the last 15 minutes.
+     */
+    public static ObservableList<Appointment> getAppointmentsNearNow() {
         ObservableList<Appointment> appointmentList = FXCollections.observableArrayList();
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             Connection connection = DriverManager.getConnection(
                     dbConnectionString,dbConnectionUser,dbConnectionPassword);
-            PreparedStatement ps = connection.prepareStatement("SELECT * FROM appointments WHERE End>= DATE(NOW() - INTERVAL 7 DAY);"); // Using a PreparedStatement to avoid injection
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM appointments WHERE " +
+                    "Start BETWEEN ? AND ?;"); // Using a PreparedStatement to avoid injection
+            OffsetDateTime odt = Instant.now().atOffset( ZoneOffset.UTC ) ;
+            ps.setObject(1, odt);
+            ps.setObject(2, odt.plusMinutes(15));
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 appointmentList.add(new Appointment(
@@ -260,6 +387,99 @@ public class DatabaseController {
         return appointmentList;
     }
 
+    /**
+     * Returns all the appointments between the two dates.
+     *
+     * @param start Start date to check
+     * @param end End date to check
+     * @return An ObservableList Appointment  of all the appointments between the start date and the end date
+     */
+    public static ObservableList<Appointment> getAppointmentsBetweenTwoDates(LocalDate start, LocalDate end) {
+        ObservableList<Appointment> appointmentList = FXCollections.observableArrayList();
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection connection = DriverManager.getConnection(
+                    dbConnectionString,dbConnectionUser,dbConnectionPassword);
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM appointments WHERE " +
+                    "Start BETWEEN ? AND ?;"); // Using a PreparedStatement to avoid injection
+            ps.setDate(1, Date.valueOf(LocalDate.of(start.getYear(), start.getMonth(), start.getDayOfMonth())));
+            ps.setDate(2, Date.valueOf(LocalDate.of(end.getYear(), end.getMonth().getValue(), end.getDayOfMonth())));
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                appointmentList.add(new Appointment(
+                        rs.getInt("Appointment_ID"),
+                        rs.getString("Title"),
+                        rs.getString("Description"),
+                        rs.getString("Location"),
+                        rs.getString("Type"),
+                        rs.getTimestamp("Start", Calendar.getInstance(TimeZone.getTimeZone("UTC"))).toInstant(),
+                        rs.getTimestamp("End", Calendar.getInstance(TimeZone.getTimeZone("UTC"))).toInstant(),
+                        rs.getTimestamp("Create_Date", Calendar.getInstance(TimeZone.getTimeZone("UTC"))).toInstant(),
+                        rs.getString("Created_By"),
+                        rs.getTimestamp("Last_Update", Calendar.getInstance(TimeZone.getTimeZone("UTC"))).toInstant(),
+                        rs.getString("Last_Updated_By"),
+                        rs.getInt("Customer_ID"),
+                        rs.getInt("User_ID"),
+                        rs.getInt("Contact_ID")));
+            }
+            connection.close();
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+        return appointmentList;
+    }
+
+    /**
+     * Checks for appointments in the given month and year.
+     *
+     * @param year Year to check
+     * @param month Month to check
+     * @return An ObservableList of Appointments
+     */
+    public static ObservableList<Appointment> getAppointmentsByMonth(int year, Month month) {
+        ObservableList<Appointment> appointmentList = FXCollections.observableArrayList();
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection connection = DriverManager.getConnection(
+                    dbConnectionString,dbConnectionUser,dbConnectionPassword);
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM appointments WHERE " +
+                    "Start BETWEEN ? AND ?;"); // Using a PreparedStatement to avoid injection
+            ps.setDate(1, Date.valueOf(LocalDate.of(year, month.getValue(), 1)));
+            ps.setDate(2, Date.valueOf(LocalDate.of(year, month.getValue(), month.maxLength())));
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                appointmentList.add(new Appointment(
+                        rs.getInt("Appointment_ID"),
+                        rs.getString("Title"),
+                        rs.getString("Description"),
+                        rs.getString("Location"),
+                        rs.getString("Type"),
+                        rs.getTimestamp("Start", Calendar.getInstance(TimeZone.getTimeZone("UTC"))).toInstant(),
+                        rs.getTimestamp("End", Calendar.getInstance(TimeZone.getTimeZone("UTC"))).toInstant(),
+                        rs.getTimestamp("Create_Date", Calendar.getInstance(TimeZone.getTimeZone("UTC"))).toInstant(),
+                        rs.getString("Created_By"),
+                        rs.getTimestamp("Last_Update", Calendar.getInstance(TimeZone.getTimeZone("UTC"))).toInstant(),
+                        rs.getString("Last_Updated_By"),
+                        rs.getInt("Customer_ID"),
+                        rs.getInt("User_ID"),
+                        rs.getInt("Contact_ID"))
+                );
+            }
+            connection.close();
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+        return appointmentList;
+    }
+
+    /**
+     * Gets a contact from the database based on the ID.
+     *
+     * @param id ID to get the contact
+     * @return a contact object if found
+     */
     public static Contact getContactById(int id) {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -282,6 +502,11 @@ public class DatabaseController {
         return null;
     }
 
+    /**
+     * Gets all the contacts from the database.
+     *
+     * @return An ObservableList Contact of all contacts
+     */
     public static ObservableList<Contact> getAllContacts() {
         ObservableList<Contact> contactList = FXCollections.observableArrayList();
         try {
@@ -304,6 +529,12 @@ public class DatabaseController {
         return contactList;
     }
 
+    /**
+     * Gets the Country object based on the ID
+     *
+     * @param id Id of the country to look up in the database
+     * @return A country object if found.
+     */
     public static Country getCountryById(int id) {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -331,6 +562,11 @@ public class DatabaseController {
         return null;
     }
 
+    /**
+     * Gets all Countries in the database
+     *
+     * @return An ObservableList Country of all countries in the database
+     */
     public static ObservableList<Country> getAllCountries() {
         ObservableList<Country> countryList = FXCollections.observableArrayList();
         try {
@@ -357,6 +593,12 @@ public class DatabaseController {
         return countryList;
     }
 
+    /**
+     * Gets a customer from the database based on ID
+     *
+     * @param id ID of the customer to lookup in the database
+     * @return A customer object if found
+     */
     public static Customer getCustomerById(int id) {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -388,6 +630,11 @@ public class DatabaseController {
         return null;
     }
 
+    /**
+     * Gets all the customers in the database
+     *
+     * @return An ObservableList Customer  of all customers in the database
+     */
     public static ObservableList<Customer> getAllCustomers() {
         ObservableList<Customer> customerList = FXCollections.observableArrayList();
         try {
@@ -417,6 +664,12 @@ public class DatabaseController {
         return customerList;
     }
 
+    /**
+     * Gets a division based on the ID.
+     *
+     * @param id ID of the division to lookup.
+     * @return The division object if found
+     */
     public static Division getDivisionById(int id) {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -446,6 +699,12 @@ public class DatabaseController {
         return null;
     }
 
+    /**
+     * Gets all the divisions for a specified country.
+     *
+     * @param id Country ID to fetch all the divisions for.
+     * @return An ObservableList Division  of all the divisions for the specified country
+     */
     public static ObservableList<Division> getDivisionsByCountryId(int id) {
         ObservableList<Division> divisionList = FXCollections.observableArrayList();
         try {
@@ -475,6 +734,11 @@ public class DatabaseController {
         return null;
     }
 
+    /**
+     * Gets all the divisions in the database.
+     *
+     * @return An ObservableList Division  of all divisions in the database.
+     */
     public static ObservableList<Division> getAllDivisions() {
         ObservableList<Division> divisionList = FXCollections.observableArrayList();
         try {
@@ -501,6 +765,11 @@ public class DatabaseController {
         return divisionList;
     }
 
+    /**
+     * Updates an appointment in the database.
+     *
+     * @param appointment Appointment to update
+     */
     public static void updateAppointment(Appointment appointment) {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -529,6 +798,11 @@ public class DatabaseController {
         }
     }
 
+    /**
+     * Updates a contact in the database.
+     *
+     * @param contact Contact to update in the database
+     */
     public static void updateContact(Contact contact) {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -547,6 +821,11 @@ public class DatabaseController {
         }
     }
 
+    /**
+     * Updates an existing customer object in the database
+     *
+     * @param customer Customer to update in the database
+     */
     public static void updateCustomer(Customer customer) {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -571,6 +850,13 @@ public class DatabaseController {
         }
     }
 
+    /**
+     * Validates the login to the database.  If it succeeds, it sets the username and ID for the application.
+     *
+     * @param userName Username to test
+     * @param password Password to test
+     * @return True if successful.
+     */
     public static boolean validateLogin(String userName, String password) {
         try {
             Logger logger = Logger.getLogger("C195");
