@@ -17,7 +17,7 @@ import java.util.logging.SimpleFormatter;
  */
 public class DatabaseController {
     //DB Connection information.
-    private static final String dbConnectionString = "jdbc:mysql://192.168.1.2:3306/client_schedule?serverTimezone=UTC";
+    private static final String dbConnectionString = "jdbc:mysql://127.0.0.1:3306/client_schedule?serverTimezone=UTC";
     private static final String dbConnectionUser = "sqlUser";
     private static final String dbConnectionPassword = "Passw0rd!";
 
