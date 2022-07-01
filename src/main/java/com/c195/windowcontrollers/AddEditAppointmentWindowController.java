@@ -215,6 +215,7 @@ public class AddEditAppointmentWindowController {
 
     /**
      * Initialize the form.  Sets the data if this is an existing appointment and prefills the comboboxes.
+     * Lambdas to alter the format of the dates displayed in the tableView.
      */
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {

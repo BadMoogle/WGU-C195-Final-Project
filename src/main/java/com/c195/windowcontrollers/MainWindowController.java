@@ -309,7 +309,8 @@ public class MainWindowController {
 
     /**
      * Initialize data values on the form after it's loaded.
-     * Lambdas to format the cells.
+     * Lambdas to format the date cell cells and to create anonymous event listeners.  This is easier than dedicated
+     * methods since the functions are only meant for the calling control and none others.
      *
      */
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -327,7 +328,6 @@ public class MainWindowController {
         tableColumnStart.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(LocalDateTime item, boolean empty) {
-
                 super.updateItem(item, empty);
                 if (empty)
                     setText(null);

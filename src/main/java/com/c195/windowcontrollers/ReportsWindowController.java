@@ -173,6 +173,12 @@ public class ReportsWindowController {
         }
     }
 
+    /**
+     * Called after the form is initialized.
+     * Lambas to alter how the dates are formatted.
+     * Lamdas also disable the weekends on the calendars.
+     *
+     */
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
         this.selectedDates = FXCollections.observableSet(new TreeSet<>());
