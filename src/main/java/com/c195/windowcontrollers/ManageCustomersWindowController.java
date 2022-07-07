@@ -114,7 +114,9 @@ public class ManageCustomersWindowController {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         ResourceBundle localizationBundle = ResourceBundle.getBundle("com.c195.localization", App.currentLocale);
         alert.setTitle(localizationBundle.getString("deleteCustomer"));
-        alert.setContentText(localizationBundle.getString("deleteCustomer") + " " + customer + "?" );
+        alert.setContentText(localizationBundle.getString("deleteCustomer") + " " + customer + "\n Address: " +
+                        customer.getAddress() + "\n Postal Code: " + customer.getPostalCode() + "\n Phone Number: " +
+                        customer.getPhoneNumber() + "?" );
         ButtonType yesButton = new ButtonType(localizationBundle.getString("yes"), ButtonBar.ButtonData.YES);
         ButtonType noButton = new ButtonType(localizationBundle.getString("no"), ButtonBar.ButtonData.NO);
         alert.getButtonTypes().setAll(yesButton, noButton);

@@ -108,6 +108,7 @@ public class AddEditAppointmentWindowController {
      */
     @FXML
     void onButtonSaveClick(ActionEvent event) {
+        // Verify that all the information is filled out
         if (textBoxType.getText() == "" || textBoxTitle.getText() == ""
                 || textBoxLocation.getText() == "" ||textBoxDescription.getText() == ""
                 || comboBoxContact.getSelectionModel().getSelectedItem() == null
@@ -118,6 +119,7 @@ public class AddEditAppointmentWindowController {
             return;
         }
         try {
+            // Convert time to 24h format
             int startHour = selectorStartHour.getValue();
             if (selectorStartAMPM.getValue() == "PM"){ // Convert to 24 hour format.
                 startHour += 12;
@@ -153,6 +155,10 @@ public class AddEditAppointmentWindowController {
                     Alert alert = new Alert(Alert.AlertType.ERROR, resources.getString("appointOutsideWorkHours"));
                     alert.showAndWait();
                 }
+                else if(startTime.toInstant().isAfter(endTime.toInstant())) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR, resources.getString("startDateAfterEndDate"));
+                    alert.showAndWait();
+                }
                 else {
                     DatabaseController.addAppointment(newAppointment);
                     Stage currentStage = (Stage) buttonSave.getScene().getWindow();
@@ -178,6 +184,10 @@ public class AddEditAppointmentWindowController {
                     Alert alert = new Alert(Alert.AlertType.ERROR, resources.getString("appointOutsideWorkHours"));
                     alert.showAndWait();
                 }
+                else if(startTime.toInstant().isAfter(endTime.toInstant())) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR, resources.getString("startDateAfterEndDate"));
+                    alert.showAndWait();
+                }
                 else {
                     DatabaseController.updateAppointment(appointment);
                     Stage currentStage = (Stage) buttonSave.getScene().getWindow();
@@ -201,13 +211,10 @@ public class AddEditAppointmentWindowController {
     public boolean checkIfAppointmentOutsideWorkHours(Appointment app) {
         ZonedDateTime startDate = ZonedDateTime.of(app.getStartDateTime().getValue(), ZoneId.of("America/New_York"));
         ZonedDateTime endDate = ZonedDateTime.of(app.getEndDateTime().getValue(), ZoneId.of("America/New_York"));
-        if (startDate.getDayOfWeek() == DayOfWeek.SATURDAY || startDate.getDayOfWeek() == DayOfWeek.SUNDAY) {
-            return true;
-        }
-        if (endDate.getDayOfWeek() == DayOfWeek.SATURDAY || endDate.getDayOfWeek() == DayOfWeek.SUNDAY) {
-            return true;
-        }
         if (startDate.getHour() < 8 || startDate.getHour() > 22) {
+            return true;
+        }
+        if ((startDate.getHour() == 22 && startDate.getMinute() > 0) || (endDate.getHour() == 22 && endDate.getMinute() > 0)) {
             return true;
         }
         return endDate.getHour() < 8 || endDate.getHour() > 22;
@@ -215,7 +222,7 @@ public class AddEditAppointmentWindowController {
 
     /**
      * Initialize the form.  Sets the data if this is an existing appointment and prefills the comboboxes.
-     * Lambdas to alter the format of the dates displayed in the tableView.
+     *
      */
     @FXML // This method is called by the FXMLLoader when initialization is complete
     void initialize() {
@@ -223,27 +230,6 @@ public class AddEditAppointmentWindowController {
         zones = FXCollections.observableList(new ArrayList<>());
         amPm.add("AM");
         amPm.add("PM");
-        //Disable weekends on the date selectors
-        datePickerStart.setDayCellFactory(callback -> new DateCell() {
-            @Override
-            public void updateItem(LocalDate item, boolean empty) {
-                super.updateItem(item, empty);
-                if (item.getDayOfWeek() == DayOfWeek.SATURDAY || item.getDayOfWeek() == DayOfWeek.SUNDAY)
-                {
-                    setDisable(true);
-                }
-            }
-        });
-        datePickerEnd.setDayCellFactory(callback -> new DateCell() {
-            @Override
-            public void updateItem(LocalDate item, boolean empty) {
-                super.updateItem(item, empty);
-                if (item.getDayOfWeek() == DayOfWeek.SATURDAY || item.getDayOfWeek() == DayOfWeek.SUNDAY)
-                {
-                    setDisable(true);
-                }
-            }
-        });
         // Fill comboboxes and selectors with preset data
         comboBoxContact.setItems(DatabaseController.getAllContacts());
         comboBoxCustomer.setItems(DatabaseController.getAllCustomers());

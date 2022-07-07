@@ -87,9 +87,32 @@ public class MainWindowController {
     @FXML
     private TableColumn<Appointment, String> tableColumnType;
 
+    @FXML // fx:id="tableColumnUserID"
+    private TableColumn<Appointment, Integer> tableColumnUserID; // Value injected by FXMLLoader
+
     @FXML
     private TableView<Appointment> tableViewAppointments;
 
+
+    /**
+     * Event for when the ByMonth radio button is clicked
+     *
+     * @param event Ignored
+     */
+    @FXML
+    void OnRadioByMonthAction(ActionEvent event) {
+        UpdateCalendar();
+    }
+
+    /**
+     * Event for when the ByWeek Radio button is changed
+     *
+     * @param event Ignored
+     */
+    @FXML
+    void OnRadioByWeekAction(ActionEvent event) {
+        UpdateCalendar();
+    }
 
     /**
      * Event handler for when the date picker is changed.
@@ -98,42 +121,7 @@ public class MainWindowController {
      */
     @FXML
     void onDatePickerAction(ActionEvent event) {
-        selectedDates.clear();
-        LocalDate date = datePickerAppointment.getValue();
-        selectedDates.add(date);
-        if (radioButtonByWeek.isSelected()) {
-            DayOfWeek day = date.getDayOfWeek();
-
-            for (int i = 1; i <= day.getValue(); i++) {
-                selectedDates.add(date.minusDays(i));
-            }
-            for (int i = 1; day.getValue() + i <= 6; i++) {
-                selectedDates.add(date.plusDays(i));
-            }
-            appointmentList.clear();
-            LocalDate minDate = datePickerAppointment.getValue();
-            for(LocalDate i: selectedDates) {
-                if(i.isBefore(minDate)){
-                    minDate = i;
-                }
-            }
-            LocalDate maxDate = datePickerAppointment.getValue();
-            for(LocalDate i: selectedDates) {
-                if(i.isAfter(maxDate)){
-                    maxDate = i;
-                }
-            }
-            appointmentList = DatabaseController.getAppointmentsBetweenTwoDates(minDate, maxDate);
-            tableViewAppointments.setItems(appointmentList);
-        }
-        else {
-            for (int i = 1; i <= date.getMonth().maxLength(); i++) {
-                selectedDates.add(LocalDate.of(date.getYear(), date.getMonth(), i));
-            }
-            appointmentList.clear();
-            appointmentList = DatabaseController.getAppointmentsByMonth(datePickerAppointment.getValue().getYear(), datePickerAppointment.getValue().getMonth());
-            tableViewAppointments.setItems(appointmentList);
-        }
+        UpdateCalendar();
     }
 
     /**
@@ -158,8 +146,7 @@ public class MainWindowController {
         stage.setScene(scene);
         stage.showAndWait();
         // Update the table view if changes.
-        appointmentList = DatabaseController.getAllAppointments();
-        tableViewAppointments.setItems(appointmentList);
+        UpdateCalendar();
         buttonDelete.setDisable(true);
         buttonEdit.setDisable(true);
     }
@@ -172,10 +159,15 @@ public class MainWindowController {
     @FXML
     void onButtonDeleteClick(ActionEvent event) {
         Appointment appointment = tableViewAppointments.getSelectionModel().getSelectedItem();
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         ResourceBundle localizationBundle = ResourceBundle.getBundle("com.c195.localization", App.currentLocale);
         alert.setTitle(localizationBundle.getString("deleteAppointment"));
-        alert.setContentText(localizationBundle.getString("deleteAppointment") + " " + appointment + "?" );
+        alert.setContentText(localizationBundle.getString("deleteAppointment") + " " + appointment +
+                "\n ID: " + appointment.getAppointmentID() + "\n Type: " + appointment.getType() +
+                "\n Description: " + appointment.getDescription() + "\n Location: " + appointment.getLocation() +
+                "\n Start Date: " + appointment.getStartDateTime().getValue().format(dateTimeFormatter) +
+                "\n End Date: " + appointment.getStartDateTime().getValue().format(dateTimeFormatter) + "?");
         ButtonType yesButton = new ButtonType(localizationBundle.getString("yes"), ButtonBar.ButtonData.YES);
         ButtonType noButton = new ButtonType(localizationBundle.getString("no"), ButtonBar.ButtonData.NO);
         alert.getButtonTypes().setAll(yesButton, noButton);
@@ -279,8 +271,7 @@ public class MainWindowController {
         stage.setScene(scene);
         stage.showAndWait();
         // Update the table view if changes.
-        appointmentList = DatabaseController.getAllAppointments();
-        tableViewAppointments.setItems(appointmentList);
+        UpdateCalendar();
         buttonDelete.setDisable(true);
         buttonEdit.setDisable(true);
     }
@@ -309,8 +300,12 @@ public class MainWindowController {
 
     /**
      * Initialize data values on the form after it's loaded.
-     * Lambdas to format the date cell cells and to create anonymous event listeners.  This is easier than dedicated
+     *
+     * Lambdas to format the date cells and to create anonymous event listeners.  This is easier than dedicated
      * methods since the functions are only meant for the calling control and none others.
+     *
+     * Lambdas are also used to create anonymous event listeners to enable the Edit/Delete button only when
+     * an appointment is selected
      *
      */
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -324,6 +319,7 @@ public class MainWindowController {
         tableColumnDescription.setCellValueFactory(new PropertyValueFactory<>("description"));
         tableColumnLocation.setCellValueFactory(new PropertyValueFactory<>("location"));
         tableColumnType.setCellValueFactory(new PropertyValueFactory<>("type"));
+        tableColumnUserID.setCellValueFactory(new PropertyValueFactory<>("userId"));
         tableColumnStart.setCellValueFactory(start -> start.getValue().getStartDateTime());
         tableColumnStart.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -349,6 +345,8 @@ public class MainWindowController {
         });
         appointmentList = DatabaseController.getAllAppointments();
         tableViewAppointments.setItems(appointmentList);
+        datePickerAppointment.setValue(LocalDate.now());
+        UpdateCalendar();
         // Lambda to create the callback function required to get a row level event listener
         tableViewAppointments.setRowFactory(rowFactory -> {
             TableRow<Appointment> row = new TableRow<>();
@@ -387,8 +385,13 @@ public class MainWindowController {
         boolean alertTriggered = false;
         for (Appointment appointment: DatabaseController.getAppointmentsNearNow()){
             ResourceBundle localizationBundle = ResourceBundle.getBundle("com.c195.localization", App.currentLocale);
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             Alert alert = new Alert(Alert.AlertType.INFORMATION,
-                    localizationBundle.getString("appointmentInFifteenMinutes")+ ": " + appointment.getTitle());
+                    localizationBundle.getString("appointmentInFifteenMinutes")+ ": " + appointment.getTitle() +
+                            "\n ID: " + appointment.getAppointmentID() + "\n Type: " + appointment.getType() +
+                            "\n Description: " + appointment.getDescription() + "\n Location: " + appointment.getLocation() +
+                            "\n Start Date: " + appointment.getStartDateTime().getValue().format(dateTimeFormatter) +
+                            "\n End Date: " + appointment.getStartDateTime().getValue().format(dateTimeFormatter));
             alert.showAndWait();
             alertTriggered=true;
         }
@@ -397,6 +400,45 @@ public class MainWindowController {
             Alert alert = new Alert(Alert.AlertType.INFORMATION,
                     localizationBundle.getString("noAppointmentsInFifteenMinutes"));
             alert.showAndWait();
+        }
+    }
+
+    private void UpdateCalendar() {
+        selectedDates.clear();
+        LocalDate date = datePickerAppointment.getValue();
+        selectedDates.add(date);
+        if (radioButtonByWeek.isSelected()) {
+            DayOfWeek day = date.getDayOfWeek();
+
+            for (int i = 1; i <= day.getValue(); i++) {
+                selectedDates.add(date.minusDays(i));
+            }
+            for (int i = 1; day.getValue() + i <= 6; i++) {
+                selectedDates.add(date.plusDays(i));
+            }
+            appointmentList.clear();
+            LocalDate minDate = datePickerAppointment.getValue();
+            for(LocalDate i: selectedDates) {
+                if(i.isBefore(minDate)){
+                    minDate = i;
+                }
+            }
+            LocalDate maxDate = datePickerAppointment.getValue();
+            for(LocalDate i: selectedDates) {
+                if(i.isAfter(maxDate)){
+                    maxDate = i;
+                }
+            }
+            appointmentList = DatabaseController.getAppointmentsBetweenTwoDates(minDate, maxDate);
+            tableViewAppointments.setItems(appointmentList);
+        }
+        else {
+            for (int i = 1; i <= date.getMonth().maxLength(); i++) {
+                selectedDates.add(LocalDate.of(date.getYear(), date.getMonth(), i));
+            }
+            appointmentList.clear();
+            appointmentList = DatabaseController.getAppointmentsByMonth(datePickerAppointment.getValue().getYear(), datePickerAppointment.getValue().getMonth());
+            tableViewAppointments.setItems(appointmentList);
         }
     }
 

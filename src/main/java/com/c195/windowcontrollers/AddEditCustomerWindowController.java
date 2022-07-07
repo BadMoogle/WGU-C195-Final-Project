@@ -136,6 +136,7 @@ public class AddEditCustomerWindowController {
             textBoxPostalCode.setText(customer.getPostalCode());
             comboBoxCountry.getSelectionModel().select(customer.getDivision().getCountry());
             divisionObservableList = DatabaseController.getDivisionsByCountryId(customer.getDivision().getCountry().getCountryId());
+            comboBoxDivision.setItems(divisionObservableList);
             comboBoxDivision.getSelectionModel().select(customer.getDivision());
         }
 

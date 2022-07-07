@@ -143,18 +143,26 @@ public class DatabaseController {
     public static boolean checkAppointmentConflict(Appointment appointment, Customer customer) {
         ObservableList<Appointment> appointmentList = getAppointmentByCustomerId(customer.getCustomerId());
         boolean hasConflict = false;
+        LocalDateTime custAppStartDate = appointment.getStartDateTime().getValue();
+        LocalDateTime custAppEndDate = appointment.getEndDateTime().getValue();
         for (Appointment forAppointment : appointmentList) {
             if (forAppointment.getAppointmentID() != appointment.getAppointmentID()) {
                 // Put into local variables for my sanity
                 LocalDateTime forAppStartDate = forAppointment.getStartDateTime().getValue();
-                LocalDateTime custAppStartDate = appointment.getStartDateTime().getValue();
                 LocalDateTime forAppEndDate = forAppointment.getEndDateTime().getValue();
-                LocalDateTime custAppEndDate = appointment.getEndDateTime().getValue();
-                if (forAppStartDate.isBefore(custAppStartDate) && forAppEndDate.isAfter(custAppStartDate)) {
-                    hasConflict = true;
-                } else if (forAppEndDate.isAfter(custAppStartDate) && forAppEndDate.isBefore(custAppEndDate)) {
+                if (custAppStartDate.isBefore(forAppEndDate) && custAppEndDate.isAfter(forAppStartDate)) {
                     hasConflict = true;
                 }
+                if (custAppEndDate.isAfter(forAppStartDate) && custAppEndDate.isBefore(forAppEndDate)) {
+                    hasConflict = true;
+                }
+
+//                if (forAppStartDate.isBefore(custAppStartDate) && forAppEndDate.isAfter(custAppStartDate)) {
+//                    hasConflict = true;
+//                }
+//                else if (forAppEndDate.isAfter(custAppStartDate) && forAppEndDate.isBefore(custAppEndDate)) {
+//                    hasConflict = true;
+//                }
             }
         }
         return hasConflict;

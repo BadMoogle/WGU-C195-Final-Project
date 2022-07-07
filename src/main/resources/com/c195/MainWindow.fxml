@@ -44,6 +44,7 @@
             <TableColumn fx:id="tableColumnType" prefWidth="131.0" text="%type" />
             <TableColumn fx:id="tableColumnCustomer" prefWidth="130.0" text="%customer" />
             <TableColumn fx:id="tableColumnContact" prefWidth="101.0" text="%contact" />
+            <TableColumn fx:id="tableColumnUserID" prefWidth="75.0" text="%userID" />
             <TableColumn fx:id="tableColumnStart" prefWidth="103.0" text="%start" />
             <TableColumn fx:id="tableColumnEnd" prefWidth="150.0" text="%end" />
         </columns>
@@ -56,11 +57,11 @@
             <Font size="16.0" />
          </font>
       </Label>
-      <RadioButton fx:id="radioButtonByWeek" layoutX="729.0" layoutY="75.0" mnemonicParsing="false" selected="true" text="%byWeek">
+      <RadioButton fx:id="radioButtonByWeek" layoutX="729.0" layoutY="75.0" mnemonicParsing="false" onAction="#OnRadioByWeekAction" selected="true" text="%byWeek">
          <toggleGroup>
             <ToggleGroup fx:id="timeSpan" />
          </toggleGroup></RadioButton>
-      <RadioButton fx:id="radioButtonByMonth" layoutX="838.0" layoutY="75.0" mnemonicParsing="false" selected="true" text="%byMonth" toggleGroup="$timeSpan" />
+      <RadioButton fx:id="radioButtonByMonth" layoutX="838.0" layoutY="75.0" mnemonicParsing="false" onAction="#OnRadioByMonthAction" selected="true" text="%byMonth" toggleGroup="$timeSpan" />
       <DatePicker fx:id="datePickerAppointment" layoutX="465.0" layoutY="71.0" onAction="#onDatePickerAction" />
    </children>
 </AnchorPane>

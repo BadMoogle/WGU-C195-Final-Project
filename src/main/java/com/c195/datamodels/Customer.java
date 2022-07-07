@@ -87,7 +87,8 @@ public class Customer {
      * @return The full name of the customer
      */
     public String toString() {
-        return name;
+
+        return "(ID:" + customerId.toString() + ") " +  name;
     }
 
     /**

@@ -176,7 +176,8 @@ public class ReportsWindowController {
     /**
      * Called after the form is initialized.
      * Lambas to alter how the dates are formatted.
-     * Lamdas also disable the weekends on the calendars.
+     *
+     * Lamdas to select the entire month when the date is clicked.
      *
      */
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -255,10 +256,6 @@ public class ReportsWindowController {
             @Override
             public void updateItem(LocalDate item, boolean empty) {
                 super.updateItem(item, empty);
-                if (item.getDayOfWeek() == DayOfWeek.SATURDAY || item.getDayOfWeek() == DayOfWeek.SUNDAY)
-                {
-                    setDisable(true);
-                }
                 if (selectedDates.contains(item)) {
                     setStyle("-fx-background-color: rgba(3, 169, 244, 0.7);");
                 }
